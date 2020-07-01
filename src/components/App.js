@@ -8,50 +8,49 @@ const ipfs = ipfsClient({ host: 'ipfs.infura.io', port: 5001, protocol: 'https' 
 
 class App extends Component {
 
-	async componentWillMount() {
-		await this.loadWeb3()
-		await this.loadBlockchainData()
-	}
-	
-	async loadWeb3() {
-	   if (window.ethereum) {
-	      window.web3 = new Web3(window.ethereum)
-	      await window.ethereum.enable()
-	   }
-	   else if (window.web3) {
-	      window.web3 = new Web3(window.web3.currentProvider)
-	   }
-	   else {
-	     document.write('Non-Ethereum browser detected. You shoud consider trying MetaMask!')
-	   }
-	}
-	
-	async loadBlockchainData() {
-	   const web3 = window.web3
-	   // Load account
-	   const accounts = await web3.eth.getAccounts()
-	   this.setState({ account: accounts[0] })
-	   const networkId = await web3.eth.net.getId()
-	   const networkData = Meme.networks[networkId]
-	   if(networkData) {
-	      const contract = web3.eth.Contract(Meme.abi, networkData.address)
-	      this.setState({ contract })
-	      const memeHash = await contract.methods.get().call()
-	      this.setState({ memeHash })
-	   } else {
-	      window.alert('Smart contract not deployed to detected network.')
-	   }
-	}
-  
+  async componentWillMount() {
+    await this.loadWeb3()
+    await this.loadBlockchainData()
+  }
+
+  async loadWeb3() {
+    if (window.ethereum) {
+      window.web3 = new Web3(window.ethereum)
+      await window.ethereum.enable()
+    }
+    else if (window.web3) {
+      window.web3 = new Web3(window.web3.currentProvider)
+    }
+    else {
+      document.write('Non-Ethereum browser detected. You shoud consider trying MetaMask!')
+    }
+  }
+
+  async loadBlockchainData() {
+    const web3 = window.web3
+    // Load account
+    const accounts = await web3.eth.getAccounts()
+    this.setState({ account: accounts[0] })
+    const networkId = await web3.eth.net.getId()
+    const networkData = Meme.networks[networkId]
+    if (networkData) {
+      const contract = web3.eth.Contract(Meme.abi, networkData.address)
+      this.setState({ contract })
+      const memeHash = await contract.methods.get().call()
+      this.setState({ memeHash })
+    } else {
+      window.alert('Smart contract not deployed to detected network.')
+    }
+  }
+
   constructor(props) {
     super(props)
-    
     this.state = {
-       memeHash: '',
-       contract: null,
-       web3: null,
-       buffer: null,
-       account: null
+      memeHash: '',
+      contract: null,
+      web3: null,
+      buffer: null,
+      account: null
     }
   }
 
@@ -66,51 +65,46 @@ class App extends Component {
     }
   }
 
-  // Example hash: QmU6w9JTDCrukw39T6tY3mmg6ekrBf4yVaVwtThtvfGegq
-  // Example url: https://ipfs.infura.io/ipfs/QmU6w9JTDCrukw39T6tY3mmg6ekrBf4yVaVwtThtvfGegq
   onSubmit = (event) => {
     event.preventDefault()
     console.log("Submitting file to ipfs...")
     ipfs.add(this.state.buffer, (error, result) => {
-      //console.log('Ipfs result', result)
-      if(error) {
+      console.log('Ipfs result', result)
+      if (error) {
         console.error(error)
         return
       }
       this.state.contract.methods.set(result[0].hash).send({ from: this.state.account }).then((r) => {
-         return this.setState({ memeHash: result[0].hash })
+        return this.setState({ memeHash: result[0].hash })
       })
-      // Step 2: store file on blockchain...
     })
   }
 
   render() {
     return (
-      <div>
+      <div className="App">
         <nav className="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
-          <a className="navbar-brand col-sm-3 col-md-2 mr-0" href="http://www.dappuniversity.com/bootcamp" target="_blank" rel="noopener noreferrer">
-            Meme of the Day
-          </a>
+          <div className="App-header">BlockScript</div>
           <ul className="navbar-nav px-3">
-          	<li className="nav-item text-nowrap d-none d-sm-none d-sm-block">
-          		<small className="text-white">{this.state.account}</small>
-          	</li>
-          </ul>
+              <li className="nav-item text-nowrap d-none d-sm-none d-sm-block">
+                <small className="text-white">{this.state.account}</small>
+              </li>
+            </ul>
         </nav>
-        <div className="container-fluid mt-5">
-          <div className="row">
-            <main role="main" className="col-lg-12 d-flex text-center">
-              <div className="content mr-auto ml-auto">
-              <img alt="" src={`https://ipfs.infura.io/ipfs/${this.state.memeHash}`} />
-                
-                <form onSubmit={this.onSubmit} >
-                  <input type="file" onChange={this.captureFile} />
-                  <input type="submit" />
-                </form>
-              </div>
-            </main>
+          <div className="container-fluid mt-5">
+            <div className="row">
+              <main role="main" className="col-lg-12 d-flex text-center">
+                <div className="content mr-auto ml-auto">
+                  <embed src={`https://ipfs.infura.io/ipfs/${this.state.memeHash}`} />
+
+                  <form onSubmit={this.onSubmit} >
+                    <input type="file" onChange={this.captureFile} />
+                    <input type="submit" />
+                  </form>
+                </div>
+              </main>
+            </div>
           </div>
-        </div>
       </div>
     );
   }
