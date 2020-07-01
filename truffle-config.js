@@ -3,14 +3,14 @@ require('babel-polyfill');
 require('dotenv').config();
 
 const HDWalletProvider = require('@truffle/hdwallet-provider');
-const fs = require('fs');
-const mnemonic = fs.readFileSync(".secret").toString().trim();
+//const fs = require('fs');
+//const mnemonic = fs.readFileSync(".secret").toString().trim();
 
 module.exports = {
   networks: {
     rinkeby: {
       provider: function () {
-        return new HDWalletProvider(mnemonic, `https://rinkeby.infura.io/v3/${process.env.infuraKey}`)
+        return new HDWalletProvider(process.env.mnemonic, `https://rinkeby.infura.io/v3/${process.env.infuraKey}`)
       },
       gasPrice: 21000000000,
       network_id: 4
